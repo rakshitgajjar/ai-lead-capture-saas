@@ -23,33 +23,12 @@ export default function LeadsList({
       <div className="space-y-4">
 
         {leads.map((lead) => (
-            <div className="mt-5 p-4 bg-zinc-800 rounded-xl">
-  
-  <h4 className="font-bold text-lg mb-2">
-    AI Summary
-  </h4>
 
-  <p className="text-gray-300">
-    {lead.ai_summary || "Processing..."}
-  </p>
-
-</div>
-
-<div className="mt-4 p-4 bg-zinc-800 rounded-xl">
-
-  <h4 className="font-bold text-lg mb-2">
-    Follow-up Email
-  </h4>
-
-  <p className="text-gray-300 whitespace-pre-wrap">
-    {lead.follow_up_email || "Generating email..."}
-  </p>
-
-</div>
           <div
             key={lead.id}
             className="border border-zinc-700 rounded-2xl p-5"
           >
+
             <h3 className="text-2xl font-bold">
               {lead.name}
             </h3>
@@ -65,7 +44,33 @@ export default function LeadsList({
             <p className="mt-3">
               {lead.message}
             </p>
+
+            <div className="mt-5 p-4 bg-zinc-800 rounded-xl">
+
+              <h4 className="font-bold text-lg mb-2">
+                AI Summary
+              </h4>
+
+              <p className="text-gray-300">
+                {lead.ai_summary || "Processing..."}
+              </p>
+
+            </div>
+
+            <div className="mt-4 p-4 bg-zinc-800 rounded-xl">
+
+              <h4 className="font-bold text-lg mb-2">
+                Follow-up Email
+              </h4>
+
+              <p className="text-gray-300 whitespace-pre-wrap">
+                {lead.follow_up_email || "Generating email..."}
+              </p>
+
+            </div>
+
           </div>
+
         ))}
 
       </div>
