@@ -1,4 +1,15 @@
 "use client";
+
+import Link from "next/link";
+
+declare global {
+  interface Window {
+    Razorpay: new (options: Record<string, unknown>) => {
+      open: () => void;
+    };
+  }
+}
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-black text-white">
@@ -21,19 +32,19 @@ export default function HomePage() {
 
         <div className="flex justify-center gap-4 mt-10">
 
-          <a
+          <Link
             href="/signup"
             className="bg-white text-black px-8 py-4 rounded-2xl font-semibold"
           >
             Get Started
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/login"
             className="border border-zinc-700 px-8 py-4 rounded-2xl"
           >
             Login
-          </a>
+          </Link>
 
         </div>
 
@@ -52,7 +63,7 @@ export default function HomePage() {
             </h3>
 
             <p className="text-gray-400">
-              Automatically analyze every lead with Gemini AI
+              Automatically analyze every lead with AI
               and understand buyer intent instantly.
             </p>
 
@@ -114,64 +125,51 @@ export default function HomePage() {
           </p>
 
           <ul className="space-y-4 mt-10 text-gray-300">
-
             <li>Unlimited Leads</li>
             <li>AI Lead Analysis</li>
             <li>AI Email Generation</li>
             <li>Dashboard Access</li>
-
           </ul>
 
           <button
-  onClick={async () => {
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/create-order", {
+                  method: "POST",
+                });
 
-    try {
+                const order = await res.json();
 
-      const res = await fetch("/api/create-order", {
-        method: "POST",
-      });
+                const options = {
+                  key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                  amount: order.amount,
+                  currency: order.currency,
+                  name: "AI Lead Capture SaaS",
+                  description: "Pro Plan",
+                  order_id: order.id,
 
-      const order = await res.json();
+                  handler: async () => {
+                    await fetch("/api/upgrade-user", {
+                      method: "POST",
+                    });
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                    window.location.href = "/payment-success";
+                  },
+                };
 
-        amount: order.amount,
+                const paymentObject = new window.Razorpay(options);
+                paymentObject.open();
 
-        currency: order.currency,
+              } catch (error: unknown) {
+                console.log(error);
+                alert("Payment failed");
+              }
+            }}
+            className="mt-10 bg-white text-black px-8 py-4 rounded-2xl font-semibold"
+          >
+            Start Free Trial
+          </button>
 
-        name: "AI Lead Capture SaaS",
-
-        description: "Pro Plan",
-
-        order_id: order.id,
-
-  handler: async function () {
-
-  await fetch("/api/upgrade-user", {
-    method: "POST",
-  });
-
-  window.location.href = "/payment-success";
-},
-      };
-
-      const paymentObject = new (window as any).Razorpay(options);
-
-      paymentObject.open();
-
-    } catch (error:unknown) {
-
-      console.log(error);
-
-      alert("Payment failed");
-    }
-  }}
-  className="mt-10 bg-white text-black px-8 py-4 rounded-2xl font-semibold"
->
-  Start Free Trial
-</button>
-         
         </div>
 
       </section>
