@@ -154,7 +154,7 @@ export default async function DashboardPage() {
             Unlock unlimited leads, AI lead analysis,
             follow-up emails and future CRM features.
           </p>
-
+        
          <Link
             href="/"
             className="inline-block bg-white text-black px-8 py-4 rounded-2xl font-semibold"
