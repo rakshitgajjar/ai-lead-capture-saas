@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LeadsList from "@/components/LeadsList";
 import LeadForm from "@/components/LeadForm";
 import { redirect } from "next/navigation";
@@ -154,13 +155,12 @@ export default async function DashboardPage() {
             follow-up emails and future CRM features.
           </p>
 
-          <a
+         <Link
             href="/"
             className="inline-block bg-white text-black px-8 py-4 rounded-2xl font-semibold"
-          >
-            Upgrade Now
-          </a>
-
+         >
+             Upgrade Now
+          </Link>
         </div>
       )}
 

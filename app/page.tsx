@@ -160,7 +160,7 @@ export default function HomePage() {
 
       paymentObject.open();
 
-    } catch (error) {
+    } catch (error:unknown) {
 
       console.log(error);
 
