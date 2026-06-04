@@ -10,22 +10,40 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
 
   const handleSignup = async () => {
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
     console.log("SIGNUP RESULT:", error);
 
-if (error) {
-  alert(error.message);
-} else {
-  alert("Signup successful");
-}
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    if (data.user) {
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert([
+          {
+            id: data.user.id,
+            email: data.user.email,
+            is_pro: false,
+          },
+        ]);
+
+      console.log("PROFILE ERROR:", profileError);
+
+      alert("Signup successful! Check your email.");
+    }
   };
 
   return (
     <main className="min-h-screen bg-black text-white flex items-center justify-center">
+
       <div className="w-full max-w-md bg-zinc-900 p-8 rounded-3xl border border-zinc-800">
 
         <h1 className="text-3xl font-bold mb-6">
@@ -58,7 +76,9 @@ if (error) {
           </button>
 
         </div>
+
       </div>
+
     </main>
   );
 }

@@ -17,54 +17,73 @@ export default function LeadForm() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      alert("Not logged in");
+      alert("Please login first");
       return;
     }
 
-    const { error } = await supabase.from("leads").insert({
-      name,
-      email,
-      company,
-      message,
-      user_id: user.id,
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    const { count } = await supabase
+      .from("leads")
+      .select("*", {
+        count: "exact",
+        head: true,
+      })
+      .eq("user_id", user.id);
+
+    if (!profile?.is_pro && (count || 0) >= 5) {
+      alert(
+        "Free plan limit reached. Upgrade to Pro for unlimited leads."
+      );
+      return;
+    }
+
+    const { data: lead, error } = await supabase
+      .from("leads")
+      .insert({
+        name,
+        email,
+        company,
+        message,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await fetch("/api/ai-process", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        leadId: lead.id,
+      }),
     });
 
-   if (error) {
-  alert(error.message);
+    alert("Lead saved successfully");
 
-} else {
+    setName("");
+    setEmail("");
+    setCompany("");
+    setMessage("");
 
-  const { data: latestLead } = await supabase
-    .from("leads")
-    .select("*")
-    .order("id", { ascending: false })
-    .limit(1)
-    .single();
-
-  await fetch("/api/ai-process", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      leadId: latestLead.id,
-    }),
-  });
-
-  alert("Lead saved and AI processed");
-
-  setName("");
-  setEmail("");
-  setCompany("");
-  setMessage("");
-}
+    window.location.reload();
   };
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-3xl mb-10">
-      
+
       <h2 className="text-3xl font-bold mb-6">
-        Add Lead
+        Create New Lead
       </h2>
 
       <div className="space-y-4">

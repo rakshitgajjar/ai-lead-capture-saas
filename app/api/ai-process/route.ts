@@ -1,86 +1,51 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { createClient } from "@supabase/supabase-js";
-
-const genAI = new GoogleGenerativeAI(
-  process.env.GOOGLE_GEMINI_API_KEY!
-);
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const { leadId } = await req.json();
 
-    const { leadId } = body;
+    const supabase = await createClient();
 
-    const { data: lead } = await supabase
+    const { data: lead, error } = await supabase
       .from("leads")
       .select("*")
       .eq("id", leadId)
       .single();
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-    });
+    if (error || !lead) {
+      return NextResponse.json(
+        { error: "Lead not found" },
+        { status: 404 }
+      );
+    }
 
-    const prompt = `
-You are an AI sales assistant.
+    console.log("LEAD FOUND:", lead);
 
-Analyze this lead and return:
+    const ai_summary = "TEST SUMMARY";
+    const follow_up_email = "TEST EMAIL";
+    const lead_score = "Warm";
 
-1. Short lead summary
-2. Personalized follow-up email
+    const result = await supabase
+      .from("leads")
+      .update({
+        ai_summary,
+        follow_up_email,
+        lead_score,
+      })
+      .eq("id", leadId);
 
-Lead Info:
-Name: ${lead.name}
-Company: ${lead.company}
-Message: ${lead.message}
-
-Return in this format:
-
-SUMMARY:
-...
-
-EMAIL:
-...
-`;
-
-    const result = await model.generateContent(prompt);
-
-    const response = await result.response.text();
-
-const summaryMatch = response.match(
-  /SUMMARY:\s*([\s\S]*?)EMAIL:/
-);
-
-const emailMatch = response.match(
-  /EMAIL:\s*([\s\S]*)/
-);
-
-const summary = summaryMatch?.[1]?.trim() || "";
-const followUpEmail = emailMatch?.[1]?.trim() || "";
-
-await supabase
-  .from("leads")
-  .update({
-    ai_summary: summary,
-    follow_up_email: followUpEmail,
-  })
-  .eq("id", leadId);
-
-return NextResponse.json({
-  success: true,
-});
-
-  } catch (error) {
-    console.log(error);
+    console.log("UPDATE RESULT:", result);
 
     return NextResponse.json({
-      success: false,
+      success: true,
     });
+  } catch (error) {
+    console.log("AI PROCESS ERROR:", error);
+
+    return NextResponse.json(
+      { error: true },
+      { status: 500 }
+    );
   }
 }
